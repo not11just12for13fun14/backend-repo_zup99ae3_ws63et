@@ -1,48 +1,43 @@
-"""
-Database Schemas
-
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
-"""
-
+from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field
-from typing import Optional
 
-# Example schemas (replace with your own):
+# App Schemas for MVP
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+Mode = Literal["auto", "step"]
+Fandom = Literal["harry_potter", "game_of_thrones", "generic"]
+AssetKind = Literal["image", "voice", "music", "clip"]
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Project(BaseModel):
+    title: str
+    topic: str
+    mode: Mode = "auto"
+    fandom: Fandom = "generic"
+    use_ai_images: bool = True
+    use_stock_media: bool = False
+    use_ai_voice: bool = True
+    brand_primary: str = "#FACC15"  # yellow-400
+    brand_secondary: str = "#18181B"  # zinc-900
+    fps: int = 30
+    max_seconds: int = 60
 
-# Add your own schemas here:
-# --------------------------------------------------
+class ScriptSegment(BaseModel):
+    start: float
+    end: float
+    text: str
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Script(BaseModel):
+    project_id: str
+    text: str
+    segments: List[ScriptSegment] = Field(default_factory=list)
+
+class MediaAsset(BaseModel):
+    project_id: str
+    kind: AssetKind
+    url: str
+    meta: Dict[str, Any] = Field(default_factory=dict)
+
+class RenderJob(BaseModel):
+    project_id: str
+    status: Literal["queued", "processing", "done", "error"] = "queued"
+    output_url: Optional[str] = None
+    error: Optional[str] = None
